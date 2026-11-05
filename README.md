@@ -119,6 +119,25 @@ data/                    # generated (gitignored)
 outputs/                 # checkpoints, metrics, figures (gitignored)
 ```
 
+## Slide images
+
+The images for the slides are in `slide_images/`, and each folder comes from one script at the repo root. `make_code_image.py` also needs `pillow`, `pygments` and macOS's Menlo font.
+
+| Script | Output | What it shows |
+| --- | --- | --- |
+| `make_slide_images.py` | `slide_images/*.png` | One Conway step: current frame, the cells about to flip, next frame |
+| `make_stable_images.py` | `slide_images/random_vs_stable/` | A fully still Conway grid, a random grid with the same number of live cells, and 50% random static |
+| `make_rule_images.py` | `slide_images/helpful/` | A cell and its eight neighbors, and the four rule outcomes |
+| `make_perlin_images.py` | `slide_images/perlin_vs_stable/` | A second still Conway grid and a Perlin noise look-alike with the same number of live cells |
+| `make_code_image.py` | `slide_images/code/` | `game_of_life.py` lines 68 to 89, drawn like a code editor window |
+
+`slide_images/index.html` and `slide_images/slide_set.html` are the pages that show the images together.
+
+These images are illustrations and are separate from the classifier's dataset:
+
+- The Conway grids were run until they stopped changing, and were picked from the 7 of 300 random starts that ended fully still.
+- The Perlin grid uses its own generator here, not `classifier/generators.py`. It was picked from about 15,000 noise fields as the closest match to the Conway grid. It looks similar, but 36 of its cells would change on the next step, while none in the Conway grid would.
+
 ## What not to claim in the talk
 
 - The CNN has “learned Conway’s rules” as a predicate over all boards. It has learned the *distribution* of random-soup snapshots after \(k\) steps.

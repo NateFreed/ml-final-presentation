@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game of Life Slide Images</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout idea: one section per slide, with images in the same left and right positions as the slide boxes. */
+  :root {
+    --paper: #f4f4f2;
+    --ink: #171717;
+    --muted: #5c5c58;
+    --rule: #d4d4cf;
+    --cell: #cc79a7;
+    --neighbor: #f0e442;
+    --font-display: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161615;
+      --ink: #f0f0ec;
+      --muted: #a8a8a2;
+      --rule: #3a3a37;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161615;
+    --ink: #f0f0ec;
+    --muted: #a8a8a2;
+    --rule: #3a3a37;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 40px;
+    display: grid;
+    gap: 32px;
+  }
+  section { display: grid; gap: 14px; }
+  section + section { padding-top: 28px; border-top: 1px solid var(--rule); }
+  h1, h2 { margin: 0; font-family: var(--font-display); font-weight: 500; text-wrap: balance; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 18px; }
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  figure { margin: 0; display: grid; gap: 8px; align-content: start; }
+  img { display: block; width: 100%; max-width: 100%; height: auto; }
+  figcaption { display: grid; gap: 2px; }
+  .label { font-weight: 600; }
+  .detail {
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .note { margin: 0; color: var(--muted); max-width: 75ch; }
+  .single { max-width: calc(50% - 8px); }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 14px; height: 14px; flex: none; }
+  .swatch.cell { background: var(--cell); }
+  .swatch.neighbor { background: var(--neighbor); }
+  @media (max-width: 560px) {
+    main { padding: 24px 16px 32px; }
+    .pair { grid-template-columns: minmax(0, 1fr); }
+    .single { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Game of Life slide images</h1>
+
+  <section>
+    <h2>Can you tell the difference? (Probably...)</h2>
+    <div class="pair">
+      <figure>
+        <img src="random_vs_stable/random_static_50pct.png" width="2202" height="2002" alt="A 55 by 50 grid of random black and white cells, about half of them white, resembling TV static.">
+        <figcaption>
+          <span class="label">Random static grid</span>
+          <span class="detail">1,360 of 2,750 alive (49.5%)</span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="random_vs_stable/conway_stable.png" width="2202" height="2002" alt="A 55 by 50 grid that has settled under Conway's rules: mostly black, with scattered still-life shapes such as blocks and beehives.">
+        <figcaption>
+          <span class="label">Conway stable state</span>
+          <span class="detail">102 of 2,750 alive (3.7%)</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Can you tell the difference?</h2>
+    <div class="pair">
+      <figure>
+        <img src="random_vs_stable/random_same_density.png" width="2202" height="2002" alt="A 55 by 50 grid with 102 randomly placed white cells, most of them isolated.">
+        <figcaption>
+          <span class="label">Random static grid, same density as Conway</span>
+          <span class="detail">102 of 2,750 alive (3.7%)</span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="random_vs_stable/conway_stable.png" width="2202" height="2002" alt="The same settled Conway grid as the slide above.">
+        <figcaption>
+          <span class="label">Conway stable state</span>
+          <span class="detail">102 of 2,750 alive (3.7%)</span>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="note">With density matched, structure is the only difference. All 102 live cells in the Conway grid have 2 or 3 live neighbors. In the random grid, only 8 do, and 68 have none.</p>
+  </section>
+
+  <section>
+    <h2>Helpful images</h2>
+    <div class="pair">
+      <figure>
+        <img src="helpful/neighbors.png" width="1208" height="1208" alt="A 5 by 5 black grid with the center cell in pink and the eight cells around it in yellow.">
+        <figcaption>
+          <span class="label">A cell and its eight neighbors</span>
+          <span class="detail legend">
+            <span><span class="swatch cell"></span>the cell</span>
+            <span><span class="swatch neighbor"></span>its neighbors</span>
+          </span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="helpful/rules.png" width="1600" height="1600" alt="Four examples of a 3 by 3 block with an arrow to the center cell's next state: dies with too few neighbors, survives with 2 or 3, dies with too many, and is born with exactly 3.">
+        <figcaption>
+          <span class="label">The four outcomes</span>
+          <span class="detail">Pink outline: the cell being updated</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Perlin noise versus Conway</h2>
+    <div class="pair">
+      <figure>
+        <img src="perlin_vs_stable/perlin_lookalike.png" width="2202" height="2002" alt="A 55 by 50 grid of thresholded Perlin noise: mostly black, with scattered small rings and blobs that resemble Conway shapes.">
+        <figcaption>
+          <span class="label">Perlin noise look-alike</span>
+          <span class="detail">90 of 2,750 alive (3.3%)</span>
+        </figcaption>
+      </figure>
+      <figure>
+        <img src="perlin_vs_stable/conway_stable_2.png" width="2202" height="2002" alt="A second 55 by 50 grid settled under Conway's rules: mostly black, with scattered blocks, beehives, loaves and ponds.">
+        <figcaption>
+          <span class="label">Conway stable state (second grid)</span>
+          <span class="detail">90 of 2,750 alive (3.3%)</span>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="note">Same density and a similar look. On the next step, no cell in the Conway grid changes, while 36 cells in the Perlin grid do.</p>
+  </section>
+
+  <section>
+    <h2>Code Example</h2>
+    <figure class="single">
+      <img src="code/code_screenshot.png" width="1672" height="2000" alt="Dark editor view of game_of_life.py, lines 68 to 89, showing the countNeighbors, stepForward and conwayStep methods.">
+      <figcaption>
+        <span class="label">game_of_life.py, lines 68 to 89</span>
+        <span class="detail">countNeighbors, stepForward, conwayStep</span>
+      </figcaption>
+    </figure>
+  </section>
+</main>
+</body>
+</html>

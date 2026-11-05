@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game of Life Step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout idea: three equal squares in a row, read left to right as one step of time. */
+  :root {
+    --paper: #f4f4f2;
+    --ink: #171717;
+    --muted: #5c5c58;
+    --rule: #d4d4cf;
+    --dying: #d55e00;
+    --born: #56b4e9;
+    --font-display: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161615;
+      --ink: #f0f0ec;
+      --muted: #a8a8a2;
+      --rule: #3a3a37;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161615;
+    --ink: #f0f0ec;
+    --muted: #a8a8a2;
+    --rule: #3a3a37;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  main {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 24px 40px;
+    display: grid;
+    gap: 24px;
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+  .frames {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  figure { margin: 0; display: grid; gap: 10px; align-content: start; }
+  img { display: block; width: 100%; max-width: 100%; height: auto; }
+  figcaption { display: grid; gap: 2px; }
+  .label { font-weight: 600; }
+  .detail {
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .legend li { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 16px; height: 16px; flex: none; }
+  .swatch.dying { background: var(--dying); }
+  .swatch.born { background: var(--born); }
+  .notes {
+    display: grid;
+    gap: 6px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    max-width: 75ch;
+  }
+  .notes p { margin: 0; }
+  @media (max-width: 640px) {
+    main { padding: 24px 16px 32px; }
+    .frames { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>One step of Conway's Game of Life</h1>
+  <div class="frames">
+    <figure>
+      <img src="1_current.png" width="1204" height="1204" alt="A 12 by 12 grid of black dead cells and white live cells, holding a glider, a blinker, a block and a toad.">
+      <figcaption>
+        <span class="label">1. Current frame</span>
+        <span class="detail">18 alive</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="2_changes.png" width="1204" height="1204" alt="The same grid with the 8 live cells about to die in orange and the 8 dead cells about to be born in blue.">
+      <figcaption>
+        <span class="label">2. Cells about to flip</span>
+        <span class="detail">8 dying, 8 born</span>
+      </figcaption>
+    </figure>
+    <figure>
+      <img src="3_next.png" width="1204" height="1204" alt="The grid one step later: the glider has shifted, the blinker is vertical, the block is unchanged and the toad has opened out.">
+      <figcaption>
+        <span class="label">3. Next frame</span>
+        <span class="detail">18 alive</span>
+      </figcaption>
+    </figure>
+  </div>
+  <ul class="legend">
+    <li><span class="swatch dying"></span>Alive now, dead next step</li>
+    <li><span class="swatch born"></span>Dead now, alive next step</li>
+  </ul>
+  <div class="notes">
+    <p>A dead cell with exactly 3 live neighbors is born. A live cell with 2 or 3 live neighbors survives. Every other cell is dead in the next frame.</p>
+    <p>Top left is a glider, top right a blinker, bottom right a toad. The block at bottom left has no highlights because it never changes.</p>
+  </div>
+</main>
+</body>
+</html>
