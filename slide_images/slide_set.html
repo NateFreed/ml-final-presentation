@@ -154,24 +154,24 @@
   </section>
 
   <section>
-    <h2>Perlin noise versus Conway</h2>
+    <h2>Perlin noise versus mid-game Conway</h2>
     <div class="pair">
       <figure>
-        <img src="perlin_vs_stable/perlin_lookalike.png" width="2202" height="2002" alt="A 55 by 50 grid of thresholded Perlin noise: mostly black, with scattered small rings and blobs that resemble Conway shapes.">
+        <img src="perlin_vs_conway/perlin_lookalike.png" width="2202" height="2002" alt="A 55 by 50 grid of thresholded Perlin noise: irregular white blobs and short lines scattered on black.">
         <figcaption>
           <span class="label">Perlin noise look-alike</span>
-          <span class="detail">90 of 2,750 alive (3.3%)</span>
+          <span class="detail">451 of 2,750 alive (16.4%)</span>
         </figcaption>
       </figure>
       <figure>
-        <img src="perlin_vs_stable/conway_stable_2.png" width="2202" height="2002" alt="A second 55 by 50 grid settled under Conway's rules: mostly black, with scattered blocks, beehives, loaves and ponds.">
+        <img src="perlin_vs_conway/conway_midgame.png" width="2202" height="2002" alt="A 55 by 50 Conway grid 20 steps after a random start: irregular white clusters, thin lines and small rings scattered on black.">
         <figcaption>
-          <span class="label">Conway stable state (second grid)</span>
-          <span class="detail">90 of 2,750 alive (3.3%)</span>
+          <span class="label">Conway, 20 steps from random noise</span>
+          <span class="detail">451 of 2,750 alive (16.4%)</span>
         </figcaption>
       </figure>
     </div>
-    <p class="note">Same density and a similar look. On the next step, no cell in the Conway grid changes, while 36 cells in the Perlin grid do.</p>
+    <p class="note">Same density, and both still changing. The difference is local: 42% of live cells in the Perlin grid have 4 or more live neighbors, against 26% in the Conway frame. One step later, the Perlin grid falls to 367 live cells, while the Conway frame holds at 453.</p>
   </section>
 
   <section>
