@@ -35,6 +35,7 @@ def test_bundle_shapes():
         "perlin",
         "live_free_or_die",
         "highlife",
+        "day_and_night",
     }
     for arr in bundle.values():
         assert arr.shape == (5, 16, 16)

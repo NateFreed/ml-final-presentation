@@ -28,6 +28,7 @@ Controls:
 | `perlin` | Smooth spatial noise, thresholded to that density. Catches “clump detectors.” |
 | `live_free_or_die` | B2/S0 from the project outline. Diverges quickly from Conway. |
 | `highlife` | B36/S23. Much closer to Conway early on — the honest “similar ruleset” test. |
+| `day_and_night` | B3678/S34678. **Test-only** generalization probe — never seen in Model A/B training. |
 
 ### Two models, same architecture
 

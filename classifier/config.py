@@ -33,14 +33,26 @@ CLASS_NAMES = [
     "perlin",
     "live_free_or_die",
     "highlife",
+    "day_and_night",  # B3678/S34678; test-only generalization probe
 ]
 POSITIVE_CLASS = "conway"
-NEGATIVE_CLASSES = [c for c in CLASS_NAMES if c != POSITIVE_CLASS]
+
+# Negatives used when training Model B (Day & Night is held out of training).
+TRAIN_NEGATIVES = [
+    "random",
+    "density_matched",
+    "perlin",
+    "live_free_or_die",
+    "highlife",
+]
+# Seen only at evaluation / in plots — never in Model A or B training.
+TEST_ONLY_NEGATIVES = ["day_and_night"]
+NEGATIVE_CLASSES = TRAIN_NEGATIVES + TEST_ONLY_NEGATIVES
 
 # Model A only sees fresh random noise as the negative during training.
 MODEL_A_NEGATIVES = ["random"]
-# Model B sees every negative type, evenly.
-MODEL_B_NEGATIVES = list(NEGATIVE_CLASSES)
+# Model B sees every train negative, evenly (not Day & Night).
+MODEL_B_NEGATIVES = list(TRAIN_NEGATIVES)
 
 # Reproducibility
 DATASET_SEED = 0

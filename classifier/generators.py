@@ -141,6 +141,9 @@ def generate_soup_bundle(
     conway = np.stack(run_rule(initial, "conway", max_steps))
     lfod = np.stack(run_rule(initial, "live_free_or_die", max_steps))
     highlife = np.stack(run_rule(initial, "highlife", max_steps))
+    # Day & Night is generated for every soup but withheld from training; used
+    # only as a held-out ruleset at test time (see config.TEST_ONLY_NEGATIVES).
+    day_and_night = np.stack(run_rule(initial, "day_and_night", max_steps))
 
     randoms = np.empty_like(conway)
     density_matched = np.empty_like(conway)
@@ -158,4 +161,5 @@ def generate_soup_bundle(
         "perlin": perlins,
         "live_free_or_die": lfod,
         "highlife": highlife,
+        "day_and_night": day_and_night,
     }
