@@ -1,87 +1,155 @@
-# ml-final-presentation
+# Conway board classifier
 
-Conway's Game of Life, and other Life-like rules, on a square binary grid whose edges wrap around.
+Final project for Machine Learning: can a CNN tell **Conway’s Game of Life** boards apart from lookalike boards, and how does that ability change with the number of steps from random noise?
 
-Requires `numpy` and `matplotlib`:
+This repo has two layers:
+
+1. **`game_of_life.py`** — your teammates’ toroidal Life engine and `LifeGrid.view` board viewer (any B/S rule).
+2. **`classifier/`** — dataset generation, CNN + density baseline, step-count evaluation, figures, and FP/FN inspection that reuses `LifeGrid.view`.
+
+## The question, carefully
+
+We classify a **single** 32×32 binary board:
+
+> Was this board produced by running Conway (B3/S23) for \(k \ge 1\) steps, starting from fair random noise?
+
+We do **not** feed frame pairs. Given two consecutive frames, checking the rule is nearly trivial because the next state is a fixed function of each cell’s 3×3 neighborhood. The interesting task is a snapshot from the *distribution* of random soups after \(k\) steps (ash, blinkers, blocks, empty regions). The model is not “verifying the ruleset” in a logical sense.
+
+### Why a density baseline exists
+
+After one Conway step from density 0.5, expected live density falls to about **0.27**, then keeps falling. A threshold on live-cell count already separates Conway-at-step-\(k\) from fresh 50% noise. So a CNN that only wins on “Conway vs random” may be counting cells.
+
+Controls:
+
+| Negative class | What it tests |
+| --- | --- |
+| `random` | Headline curve (Conway after \(k\) vs fresh noise). Density helps a lot. |
+| `density_matched` | iid noise with the same live fraction as the Conway board. Density alone cannot work. |
+| `perlin` | Smooth spatial noise, thresholded to that density. Catches “clump detectors.” |
+| `live_free_or_die` | B2/S0 from the project outline. Diverges quickly from Conway. |
+| `highlife` | B36/S23. Much closer to Conway early on — the honest “similar ruleset” test. |
+
+### Two models, same architecture
+
+- **Model A** — trained only on Conway vs `random`. Matches the requested step-count graph. Then evaluated on harder negatives without retraining.
+- **Model B** — trained with negatives drawn evenly from all five negative types. This is the model that can claim to distinguish Conway from similar boards.
+
+One network sees all training steps; we **slice metrics by \(k\)** at test time. Steps `{5,10,15,20,25,30}` are held out of train/val (test keeps them) so the curve can be checked off the training support.
+
+## Setup
 
 ```bash
-pip install numpy matplotlib
+cd ml-final-presentation
+pip install -r requirements.txt
 ```
 
-## Quick start
-
-```python
-from game_of_life import LifeGrid
-
-grid = LifeGrid(sideLength=64, density=0.3, seed=0)   # random 0/1 grid
-nxt = LifeGrid.conwayStep(grid.frame)                 # one Conway step, returns a new frame
-lfod = LifeGrid.stepForward(grid.frame, "B2/S0")      # any rule, here "Live Free or Die"
-LifeGrid.view(nxt)                                    # 1 = white, 0 = black
-```
-
-Run `python game_of_life.py` to see a demo: a random 64×64 grid at the start, after 1 step, and after 50 steps.
-
-## What's in `game_of_life.py`
-
-### `LifeGrid(sideLength, density=0.5, seed=None)`
-
-Makes a `sideLength × sideLength` grid. Each cell independently starts alive (1) with probability `density`, otherwise dead (0). `density` must be between 0 and 1. Pass the same `seed` to get the same starting grid again, which is useful for reproducible experiments. The grid is stored in `grid.frame`.
-
-### `LifeGrid.conwayStep(frame)`
-
-Takes a frame and returns a **new** frame after one step of Conway's Game of Life. The frame you pass in is not modified. The edges wrap around top/bottom and left/right, so the grid is a torus: a cell on the right edge has neighbors on the left edge, and a corner cell has neighbors in all four corners.
-
-### `LifeGrid.stepForward(frame, rule="B3/S23")`
-
-The general version: one step of any Life-like rule. `conwayStep` just calls this with `"B3/S23"`. Rules use the standard birth/survival notation:
-
-- `B` lists the live-neighbor counts that bring a dead cell to life.
-- `S` lists the counts that keep a live cell alive.
-- Every other cell is dead in the next frame.
-
-So `"B3/S23"` means a dead cell with exactly 3 live neighbors is born, and a live cell with 2 or 3 live neighbors survives.
-
-`rule` can be given in three ways:
-
-| Form | Example |
-| --- | --- |
-| A name from `RULES` | `"conway"`, `"live_free_or_die"`, `"highlife"`, `"seeds"`, `"day_and_night"` |
-| A B/S string | `"B36/S23"`, `"B2/S0"`, `"B2/S"` (empty S: nothing survives) |
-| A `(birth, survive)` pair | `((3,), (2, 3))` |
-
-To add a named rule, add an entry to the `RULES` dict at the top of the file.
-
-### `grid.advance(steps=1, rule="B3/S23")`
-
-Convenience method: moves the grid's own `frame` forward `steps` steps (replacing it) and returns the new frame. Unlike `conwayStep` and `stepForward`, this changes the grid object.
-
-### `LifeGrid.view(frame, title=None, ax=None)`
-
-Draws a frame with matplotlib: 1 = white, 0 = black. With no `ax` it opens a window. Pass an `ax` to draw into an existing figure, for example to put several frames side by side as the demo does.
-
-### Helpers
-
-- `LifeGrid.countNeighbors(frame)` returns the number of live neighbors of every cell, with wraparound.
-- `parseRule(rule)` turns any of the rule forms above into a `(birth, survive)` pair of sets.
-
-## Design notes
-
-**Frames are numpy arrays, not nested tuples.** A frame is a 2D numpy array of 0s and 1s (`dtype uint8`). Neighbor counting shifts the whole grid in each of the 8 directions with `np.roll`. `np.roll` wraps whatever falls off one edge back onto the other, so wraparound comes free and a step is a few array operations instead of a Python loop over every cell. That is much faster for large grids or many steps. The step methods still accept a tuple of tuples (or a list of lists) as input and convert it.
-
-**Hashing frames.** numpy arrays can't go in a set or be used as dict keys. If you need that, for example to detect when the grid starts repeating, use `frame.tobytes()`, which gives a hashable key for the frame.
-
-## Testing
-
-Run:
+Optional: run the Life engine tests first:
 
 ```bash
 python test_game_of_life.py
 ```
 
-It checks:
+## Run the full experiment
 
-- A blinker flips back and forth every step, and the input frame isn't modified.
-- A 2×2 block split across the four corners stays still, which only happens if both edges wrap.
-- A glider travels all the way around an 8×8 grid and returns to its start after 32 steps.
-- On random grids, `stepForward` matches a slow cell-by-cell reference version for five different rules.
-- Rule parsing, tuple input, density/seed behavior, and that `view` draws 1 as white and 0 as black.
+From `ml-final-presentation/`:
+
+```bash
+python -m classifier.run_experiment
+```
+
+**Expected runtime (CPU):** about **45–60 minutes** the first time (dataset + both models + eval + figures + mistake panels). Re-runs with an existing `data/dataset.npz` and `--skip-train` are about **2 minutes**. Do not launch two `run_experiment` processes at once — they thrash the CPU and can look hung.
+
+That will:
+
+1. Generate `data/dataset.npz` (skipped if it already exists; pass `--force-data` to rebuild)
+2. Train `outputs/model_a.pt` and `outputs/model_b.pt` (+ density baselines)
+3. Write `outputs/model_*_metrics.json`
+4. Save step-count figures and example boards under `outputs/`
+5. Render false positive / false negative panels with `LifeGrid.view` under `outputs/mistakes/`
+
+Pieces can also be run alone:
+
+```bash
+python -m classifier.dataset
+python -m classifier.train --model both
+python -m classifier.evaluate --model both
+python -m classifier.plots --model both
+python -m classifier.inspect_mistakes --model both --steps 1 5 15
+```
+
+## Looking at mistakes
+
+```bash
+python -m classifier.inspect_mistakes --model both \
+  --negatives random highlife density_matched \
+  --steps 1 5 15
+```
+
+Each panel is drawn with `LifeGrid.view` (1 = white, 0 = black), same as the Life demo. Files land in `outputs/mistakes/`:
+
+- `model_a_vs_highlife_step5_fp.png` — negatives the model called Conway
+- `model_a_vs_highlife_step5_fn.png` — Conway boards the model missed
+
+## Presentation notebook
+
+```bash
+jupyter notebook notebooks/presentation.ipynb
+```
+
+The notebook loads saved metrics and figures; it does not retrain.
+
+## Project layout
+
+```
+game_of_life.py          # LifeGrid stepper + view
+test_game_of_life.py
+classifier/
+  config.py              # grid size, steps, soup counts, held-out steps
+  generators.py          # rules via LifeGrid + random / density / Perlin
+  dataset.py             # soup-level splits → data/dataset.npz
+  model.py               # circular-pad CNN + global average pool
+  baseline.py            # per-step logistic density/supergrid baseline
+  train.py               # Model A and Model B
+  evaluate.py            # accuracy / AUC by step × negative class
+  plots.py               # step curves + example boards
+  inspect_mistakes.py    # FP/FN via LifeGrid.view
+  run_experiment.py      # one-shot pipeline
+notebooks/presentation.ipynb
+data/                    # generated (gitignored)
+outputs/                 # checkpoints, metrics, figures (gitignored)
+```
+
+## What not to claim in the talk
+
+- The CNN has “learned Conway’s rules” as a predicate over all boards. It has learned the *distribution* of random-soup snapshots after \(k\) steps.
+- Live Free or Die is a strong lookalike. Prefer HighLife (and density-matched / Perlin) when arguing the model sees structure.
+- Life was published in **1970** (not 1977).
+
+## Life engine quick start
+
+```python
+from game_of_life import LifeGrid
+
+grid = LifeGrid(sideLength=64, density=0.3, seed=0)
+nxt = LifeGrid.conwayStep(grid.frame)
+LifeGrid.view(nxt)
+```
+
+See the original notes below for rule parsing, wraparound, and tests.
+
+<details>
+<summary>LifeGrid API (from the original README)</summary>
+
+### `LifeGrid(sideLength, density=0.5, seed=None)`
+
+Square grid; each cell starts alive with probability `density`. Stored in `grid.frame`.
+
+### `LifeGrid.conwayStep(frame)` / `LifeGrid.stepForward(frame, rule=...)`
+
+One step; input unchanged. Edges wrap (torus). Rules: `"conway"`, `"live_free_or_die"`, `"highlife"`, B/S strings like `"B3/S23"`, or `(birth, survive)` pairs.
+
+### `LifeGrid.view(frame, title=None, ax=None)`
+
+Draw 1 = white, 0 = black.
+
+</details>
